@@ -1,0 +1,16 @@
+---
+title: "Unit_8_Preso"
+author: "Morgan Nelson"
+date: "February 17, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if(!require(tidyverse)) {install.packages("tidyverse"); library(tidyverse)}
+```
+
+```{r import_beer_data}
+beers <- read.csv("./Beers.csv")
+breweries <- read.csv("Breweries.csv")
+```
