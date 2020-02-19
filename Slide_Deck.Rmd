@@ -8,9 +8,24 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 if(!require(tidyverse)) {install.packages("tidyverse"); library(tidyverse)}
+if(!require(usmap)) {install.packages("usmap"); library(usmap)}
 ```
 
 ```{r import_beer_data}
 beers <- read.csv("./Beers.csv")
 breweries <- read.csv("Breweries.csv")
+
+# Merge the two data frames into one
+data <- merge(beers,breweries,by.x = "Brewery_id", by.y = "Brew_ID")
+data <- data %>% 
+  rename(Beer = Name.x) %>%       # clean up munged names from merge
+  rename(Brewery = Name.y) %>%    # clean up munged names from merge
+  rename(Brewery_ID = Brewery_id) # Make anything with _ID the same
+
+# The following lines create a table that has the number of breweries
+# per state, then tidys up the columns
+brewery_count_by_state <- data %>% group_by(State) %>% summarise(count=n())
+brewery_count_by_state$State = as.character(brewery_count_by_state$State)
+brewery_count_by_state$State = str_trim(brewery_count_by_state$State)
+
 ```
