@@ -51,6 +51,7 @@ str(Beers)
 str(Breweries)
 str(All_Beer)
 
+
 All_Beer %>% 
   select(ABV,IBU,State) %>% 
   ggpairs(aes(color="State"), cardinality_threshold = NULL, bins)
@@ -63,3 +64,29 @@ z = All_Beer %>%
 gg_miss_var(All_Beer)
 
 write.csv(All_Beer,"All_Beer.csv")
+gg_miss_var(brewery_count_by_state)
+brewery_count_by_state %>% ggplot(aes(x=brewery_count_by_state$count)) +
+  geom_histogram() +
+  ggplotly()
+
+str(All_Beer)
+head(All_Beer)
+names(All_Beer)
+
+names(All_Beer)[2] <- "Brewery"
+names(All_Beer)[5] <- "Beer"
+
+All_Beer %>% 
+  select("State","Brewery") %>% 
+  group_by("state") %>% 
+  summarize("Brewery")
+  
+ST_tot <-count(All_Beer, vars = "State") # count 
+ST_tot
+("st_total")
+
+summarize("st_tot")
+
+head(All_Beer,6)
+tail(All_Beer,6)
+table("st_tot")
