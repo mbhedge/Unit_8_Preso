@@ -86,7 +86,13 @@ ST_tot
 ("st_total")
 
 summarize("st_tot")
+summary(All_Beer$ABV)
+boxplot(All_Beer$ABV, x=0:20)
+
+cor("st_tot")
+
 
 head(All_Beer,6)
 tail(All_Beer,6)
 table("st_tot")
+
