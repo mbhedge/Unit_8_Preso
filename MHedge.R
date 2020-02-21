@@ -24,7 +24,7 @@ library(Hmisc)
   length(Beers)
 
   Beers %>% 
-    select(ABV,IBU,Ounces) %>% 
+    select(ABV,IBU) %>% 
     ggpairs()
   
   summary(Beers)
@@ -81,12 +81,21 @@ All_Beer %>%
   group_by("state") %>% 
   summarize("Brewery")
   
-ST_tot <-count(All_Beer, vars = "State") # count 
+ST_tot <-count(All_Beer, vars = "State") # count ("st_total")
 ST_tot
-("st_total")
+summary(ST_tot)
+
+
 
 summarize("st_tot")
+summary(All_Beer$ABV)
+boxplot(All_Beer$ABV, x=0:20)
+
+cor("st_tot")
+
 
 head(All_Beer,6)
 tail(All_Beer,6)
 table("st_tot")
+
+mydt1 <-as.data.
