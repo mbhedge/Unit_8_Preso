@@ -24,7 +24,7 @@ library(Hmisc)
   length(Beers)
 
   Beers %>% 
-    select(ABV,IBU,Ounces) %>% 
+    select(ABV,IBU) %>% 
     ggpairs()
   
   summary(Beers)
@@ -81,9 +81,11 @@ All_Beer %>%
   group_by("state") %>% 
   summarize("Brewery")
   
-ST_tot <-count(All_Beer, vars = "State") # count 
+ST_tot <-count(All_Beer, vars = "State") # count ("st_total")
 ST_tot
-("st_total")
+summary(ST_tot)
+
+
 
 summarize("st_tot")
 summary(All_Beer$ABV)
@@ -96,3 +98,7 @@ head(All_Beer,6)
 tail(All_Beer,6)
 table("st_tot")
 
+<<<<<<< HEAD
+mydt1 <-as.data.
+=======
+>>>>>>> 34343f31193be66798aba629aea625d71dc802ed
