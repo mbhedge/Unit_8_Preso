@@ -98,7 +98,4 @@ head(All_Beer,6)
 tail(All_Beer,6)
 table("st_tot")
 
-<<<<<<< HEAD
 mydt1 <-as.data.
-=======
->>>>>>> 34343f31193be66798aba629aea625d71dc802ed
