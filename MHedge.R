@@ -96,7 +96,7 @@ summary(ST_tot)
 
 summarize("st_tot")
 summary(All_Beer$ABV)
-boxplot(All_Beer$ABV, x=0:20)
+boxplot(All_Beer$ABV)
 
 cor("st_tot")
 
@@ -121,3 +121,11 @@ mean(All_Beer$IBU, na.rm=TRUE)
 summary(All_Beer$IBU,na.rm=TRUE)
 sd(All_Beer$IBU,na.rm=TRUE)
 boxplot(All_Beer$IBU, x=0:20)
+boxplot(All_Beer$IBU)
+
+head(All_Beer)
+
+max_abv <- All_Beer %>% 
+    select(All_Beer, ABV,IBU,State) %>%
+  rev(sort(ABV))
+  
