@@ -1,8 +1,10 @@
 ---
 title: "Unit_8_Preso"
-author: "Morgan Nelson"
+author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -131,28 +133,28 @@ adjData %>% select(ABV) %>% summary()
 ```
 The distribution of Alcohol by Volume peaks at 5.9%, and shows a right skew, indicating that the set of beers sampled show a tendency to start at around 5% ABV, with a large grouping of beers in that 5.0%-6.7%, then a long tail reaching into higher and higher ABV numbers.  Fewer beers were below the 5.0% ABV mark.  From this graph, the distribution of ABV in beers appears to be more logarithmic than normal.
 ```{r histogram of ABV, large binwidth}
-data %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
+adjData %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
   geom_histogram(aes(y=..density..),binwidth = 0.005, na.rm = TRUE, show.legend = TRUE) +
   geom_density(alpha=0.2, fill="#FF6666", color="red")
 ```
 The Boxplot of ABV gives a better look at the number of outliers on each end of the ABV values.  Below the bottom whisker, we see a small number of outliers near 0.1% ABV, with many more outliers above the top whisker ranging from about 6.7% to 13%  ABV.
 ```{r boxplot of ABV}
-data %>% filter(!is.na(ABV)) %>% ggplot() +
+adjData %>% filter(!is.na(ABV)) %>% ggplot() +
   geom_boxplot(aes(y=ABV))
 ```
 Another interesting point about the histogram, the values of ABV do not appear to be purely continuous.  Instead, if we choose a smaller bin width on the ABV values, we can see a definite trend to have a beer with a specific ABV.
 ```{r histogram of ABV, small binwidth}
-data %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
+adjData %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
   geom_histogram(aes(y=..density..),binwidth = 0.001, na.rm = TRUE, show.legend = TRUE) +
   geom_density(alpha=0.2, fill="#FF6666", color="red")
 ```
 Plotting ABU vs. ABV as dots, then adding a linear model regression line shows an "up and to the right" correlation between IBU and ABV.
 ```{r relationship between IBU and ABV}
-data %>% select(c(IBU, ABV)) %>% ggplot() +
+adjData %>% select(c(IBU, ABV)) %>% ggplot() +
   geom_point(aes(x=IBU, y=ABV), position = "jitter", na.rm = TRUE) +
   geom_smooth(aes(x=IBU, y=ABV), method="lm", na.rm = TRUE)
 ```
 A more concrete indication of this correlation is given by a different plot.  Here, we are shown that the correlation is 0.67, or 67%.  While this shows a correlation, it is not a "strong" one, as there is a lot of variance between IBU and ABV.
 ```{r ggpairs of IBU v. ABV}
-data %>% select(c(IBU,ABV)) %>% ggpairs()
+adjData %>% select(c(IBU,ABV)) %>% ggpairs()
 ```
