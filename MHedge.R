@@ -31,7 +31,14 @@ library(Hmisc)
   str(Breweries)
   Breweries
 
-total_BR=count(Breweries$State)
+  # counts number of breweries in datafile
+total_BR=Breweries %>%
+  group_by("State") %>% 
+  summarise(count=n())
+
+total_BR
+
+
 
 p = Breweries %>% 
   ggplot(aes(y=total_BR)) +
@@ -98,4 +105,19 @@ head(All_Beer,6)
 tail(All_Beer,6)
 table("st_tot")
 
-mydt1 <-as.data.
+
+max(All_Beer$ABV,na.rm = TRUE)
+
+max(All_Beer$IBU,na.rm = TRUE)
+
+summary(All_Beer$ABV)
+
+
+mean(All_Beer$ABV, na.rm=TRUE)
+sd(All_Beer$ABV, na.rm=TRUE)
+
+
+mean(All_Beer$IBU, na.rm=TRUE)
+summary(All_Beer$IBU,na.rm=TRUE)
+sd(All_Beer$IBU,na.rm=TRUE)
+boxplot(All_Beer$IBU, x=0:20)
