@@ -3,6 +3,7 @@ title: "Unit_8_Preso"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
 output:
+  word_document: default
   pdf_document: default
   html_document: default
 ---
@@ -18,11 +19,14 @@ knitr::opts_chunk$set(echo = TRUE)
 # if(!require(usmap)) {install.packages("usmap")}
 # if(!require(DMwR)) {install.packages("DMwR")}
 # if(!require(GGally)) {install.packages("GGally")}
+# if(!require(extrafont)) {install.packages("extrafont")}
+
 
 library(tidyverse)
 library(usmap)
 library(DMwR)
 library(GGally)
+library(extrafont)
 ```
 Greetings Mr. CEO and Mr. CFO, other distinguished guests.
 
@@ -49,6 +53,9 @@ tail(data,n = 6)
 ```
 
 ```{r plot_brewery_map}
+# font_import()
+# extrafont::loadfonts(device="win")
+
 # The following lines create a table that has the number of breweries
 # per state, then tidys up the columns into a format the usmaps library
 # understands
@@ -60,10 +67,17 @@ brewery_count_by_state$State = str_trim(brewery_count_by_state$State)
  brewery_count_by_state = brewery_count_by_state %>% mutate(state=State)
  brewery_count_by_state = brewery_count_by_state[,3:2]
  
-brewery_count_by_state %>% 
+# style from https://rpubs.com/chidungkt/392980
+brewery_count_by_state %>%
   ggplot(aes(x=state, y = count)) + 
   geom_bar(stat="identity") + 
-  labs(title = "Breweries by State", x = "State", y="Breweries") + coord_flip()
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_text(family = "Georgia", size = 5)) +
+  labs(title = "Breweries by State", x = "State", y="Breweries") + 
+  coord_flip()
 ```
 
 While accurate this graphic is less than helpful, so we've put the breweries on a map.
@@ -77,7 +91,7 @@ plot_usmap(data=brewery_count_by_state, values = "count", labels=T) +
   labs(title = "Breweries by State")
 ```
 Let's get a better look at the northern east cost, it is a bit compressed
-```{r east_coast_breweries }
+```{r east_coast_breweries, include=FALSE}
 
 # let's get a better look at the east coast...
 plot_usmap(data=brewery_count_by_state, values = "count", labels=T, include = c(.new_england, .mid_atlantic)) + 
