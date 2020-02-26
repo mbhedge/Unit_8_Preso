@@ -3,8 +3,8 @@ title: "Unit_8_Preso"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
 output:
-  word_document: default
   pdf_document: default
+  word_document: default
   html_document: default
 ---
 
@@ -20,9 +20,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # if(!require(DMwR)) {install.packages("DMwR")}
 # if(!require(GGally)) {install.packages("GGally")}
 # if(!require(extrafont)) {install.packages("extrafont")}
-if(!require(openintro)) {install.packages("openintro")} # abbr2state
-if(!require(png)) {install.packages("png")} # abbr2state
-if(!require(jpeg)) {install.packages("jpeg")} # abbr2state
+# if(!require(openintro)) {install.packages("openintro")} # abbr2state
+# if(!require(png)) {install.packages("png")} # abbr2state
+# if(!require(jpeg)) {install.packages("jpeg")} # abbr2state
 
 
 library(tidyverse)
@@ -33,6 +33,8 @@ library(extrafont)
 library(openintro)
 library(png)
 library(jpeg)
+
+loadfonts(quiet = TRUE)
 ```
 Greetings Mr. CEO and Mr. CFO, other distinguished guests.
 
@@ -82,7 +84,7 @@ brewery_count_by_state$state <- factor(brewery_count_by_state$state, levels = br
 
 # style from https://rpubs.com/chidungkt/392980
 image <- readJPEG("beer_glass_background.jpg")
-bg <- rasterGrob(image, height = unit(1.05, "npc"), x=0.6, y=0.5)
+bg <- rasterGrob(image, height = unit(1.01, "npc"), x=0.62, y=0.5)
 brewery_count_by_state %>% 
   filter(count > 9) %>% 
   mutate(fullname = paste(abbr2state(state), count, sep = " - ")) %>% 
@@ -100,7 +102,7 @@ brewery_count_by_state %>%
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10)) +
-  labs(title = "Breweries by State", x = "State", y="Breweries") + 
+  labs(title = "States with 10 or More Breweries", x="", y="Number of Breweries") + 
   coord_flip()
 ```
 
