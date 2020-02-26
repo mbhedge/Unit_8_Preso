@@ -1,8 +1,11 @@
 ---
 title: "Unit_8_Preso"
-author: "Morgan Nelson"
+author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
-output: html_document
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -16,11 +19,22 @@ knitr::opts_chunk$set(echo = TRUE)
 # if(!require(usmap)) {install.packages("usmap")}
 # if(!require(DMwR)) {install.packages("DMwR")}
 # if(!require(GGally)) {install.packages("GGally")}
+# if(!require(extrafont)) {install.packages("extrafont")}
+# if(!require(openintro)) {install.packages("openintro")} # abbr2state
+# if(!require(png)) {install.packages("png")} # abbr2state
+# if(!require(jpeg)) {install.packages("jpeg")} # abbr2state
+
 
 library(tidyverse)
 library(usmap)
 library(DMwR)
 library(GGally)
+library(extrafont)
+library(openintro)
+library(png)
+library(jpeg)
+
+loadfonts(quiet = TRUE)
 ```
 Greetings Mr. CEO and Mr. CFO, other distinguished guests.
 
@@ -47,6 +61,9 @@ tail(data,n = 6)
 ```
 
 ```{r plot_brewery_map}
+# font_import()
+# extrafont::loadfonts(device="win")
+
 # The following lines create a table that has the number of breweries
 # per state, then tidys up the columns into a format the usmaps library
 # understands
@@ -57,11 +74,36 @@ brewery_count_by_state$State = as.character(brewery_count_by_state$State)
 brewery_count_by_state$State = str_trim(brewery_count_by_state$State)
  brewery_count_by_state = brewery_count_by_state %>% mutate(state=State)
  brewery_count_by_state = brewery_count_by_state[,3:2]
- 
+
+color_boxes <- data.frame(y1=seq(0,40,10), 
+                           y2=seq(10,50,10),
+                           color=rep(c("#BFEFFF20","#BFEFFF40"),
+                                     length.out = 5))
+
+brewery_count_by_state$state <- factor(brewery_count_by_state$state, levels = brewery_count_by_state$state[order(brewery_count_by_state$count)])
+
+# style from https://rpubs.com/chidungkt/392980
+image <- readJPEG("beer_glass_background.jpg")
+bg <- rasterGrob(image, height = unit(1.01, "npc"), x=0.62, y=0.5)
 brewery_count_by_state %>% 
-  ggplot(aes(x=state, y = count)) + 
-  geom_bar(stat="identity") + 
-  labs(title = "Breweries by State", x = "State", y="Breweries") + coord_flip()
+  filter(count > 9) %>% 
+  mutate(fullname = paste(abbr2state(state), count, sep = " - ")) %>% 
+  ggplot() + 
+  annotation_custom(bg, -Inf, Inf, -Inf, Inf) + # beer background
+  geom_bar(aes(x=reorder(fullname, count), y = count),stat="identity", 
+           fill = "brown", 
+           color = "gold",
+           alpha = 0.9) + 
+  geom_rect(data=color_boxes,
+            mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
+            fill = color_boxes$color) +
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_text(family = "Georgia", size = 10)) +
+  labs(title = "States with 10 or More Breweries", x="", y="Number of Breweries") + 
+  coord_flip()
 ```
 
 While accurate this graphic is less than helpful, so we've put the breweries on a map.
@@ -75,7 +117,7 @@ plot_usmap(data=brewery_count_by_state, values = "count", labels=T) +
   labs(title = "Breweries by State")
 ```
 Let's get a better look at the northern east cost, it is a bit compressed
-```{r east_coast_breweries }
+```{r east_coast_breweries, include=FALSE}
 
 # let's get a better look at the east coast...
 plot_usmap(data=brewery_count_by_state, values = "count", labels=T, include = c(.new_england, .mid_atlantic)) + 
@@ -131,28 +173,28 @@ adjData %>% select(ABV) %>% summary()
 ```
 The distribution of Alcohol by Volume peaks at 5.9%, and shows a right skew, indicating that the set of beers sampled show a tendency to start at around 5% ABV, with a large grouping of beers in that 5.0%-6.7%, then a long tail reaching into higher and higher ABV numbers.  Fewer beers were below the 5.0% ABV mark.  From this graph, the distribution of ABV in beers appears to be more logarithmic than normal.
 ```{r histogram of ABV, large binwidth}
-data %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
+adjData %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
   geom_histogram(aes(y=..density..),binwidth = 0.005, na.rm = TRUE, show.legend = TRUE) +
   geom_density(alpha=0.2, fill="#FF6666", color="red")
 ```
 The Boxplot of ABV gives a better look at the number of outliers on each end of the ABV values.  Below the bottom whisker, we see a small number of outliers near 0.1% ABV, with many more outliers above the top whisker ranging from about 6.7% to 13%  ABV.
 ```{r boxplot of ABV}
-data %>% filter(!is.na(ABV)) %>% ggplot() +
+adjData %>% filter(!is.na(ABV)) %>% ggplot() +
   geom_boxplot(aes(y=ABV))
 ```
 Another interesting point about the histogram, the values of ABV do not appear to be purely continuous.  Instead, if we choose a smaller bin width on the ABV values, we can see a definite trend to have a beer with a specific ABV.
 ```{r histogram of ABV, small binwidth}
-data %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
+adjData %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
   geom_histogram(aes(y=..density..),binwidth = 0.001, na.rm = TRUE, show.legend = TRUE) +
   geom_density(alpha=0.2, fill="#FF6666", color="red")
 ```
 Plotting ABU vs. ABV as dots, then adding a linear model regression line shows an "up and to the right" correlation between IBU and ABV.
 ```{r relationship between IBU and ABV}
-data %>% select(c(IBU, ABV)) %>% ggplot() +
+adjData %>% select(c(IBU, ABV)) %>% ggplot() +
   geom_point(aes(x=IBU, y=ABV), position = "jitter", na.rm = TRUE) +
   geom_smooth(aes(x=IBU, y=ABV), method="lm", na.rm = TRUE)
 ```
 A more concrete indication of this correlation is given by a different plot.  Here, we are shown that the correlation is 0.67, or 67%.  While this shows a correlation, it is not a "strong" one, as there is a lot of variance between IBU and ABV.
 ```{r ggpairs of IBU v. ABV}
-data %>% select(c(IBU,ABV)) %>% ggpairs()
+adjData %>% select(c(IBU,ABV)) %>% ggpairs()
 ```

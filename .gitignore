@@ -28,3 +28,6 @@ vignettes/*.pdf
 .Renviron
 .Rproj.user
 Slide_Deck.html
+Slide_Deck.log
+Slide_Deck_files/
+Slide_Deck.tex
