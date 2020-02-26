@@ -20,6 +20,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # if(!require(DMwR)) {install.packages("DMwR")}
 # if(!require(GGally)) {install.packages("GGally")}
 # if(!require(extrafont)) {install.packages("extrafont")}
+if(!require(openintro)) {install.packages("openintro")} # abbr2state
+if(!require(png)) {install.packages("png")} # abbr2state
+if(!require(jpeg)) {install.packages("jpeg")} # abbr2state
 
 
 library(tidyverse)
@@ -27,6 +30,9 @@ library(usmap)
 library(DMwR)
 library(GGally)
 library(extrafont)
+library(openintro)
+library(png)
+library(jpeg)
 ```
 Greetings Mr. CEO and Mr. CFO, other distinguished guests.
 
@@ -66,16 +72,34 @@ brewery_count_by_state$State = as.character(brewery_count_by_state$State)
 brewery_count_by_state$State = str_trim(brewery_count_by_state$State)
  brewery_count_by_state = brewery_count_by_state %>% mutate(state=State)
  brewery_count_by_state = brewery_count_by_state[,3:2]
- 
+
+color_boxes <- data.frame(y1=seq(0,40,10), 
+                           y2=seq(10,50,10),
+                           color=rep(c("#BFEFFF20","#BFEFFF40"),
+                                     length.out = 5))
+
+brewery_count_by_state$state <- factor(brewery_count_by_state$state, levels = brewery_count_by_state$state[order(brewery_count_by_state$count)])
+
 # style from https://rpubs.com/chidungkt/392980
-brewery_count_by_state %>%
-  ggplot(aes(x=state, y = count)) + 
-  geom_bar(stat="identity") + 
+image <- readJPEG("beer_glass_background.jpg")
+bg <- rasterGrob(image, height = unit(1.05, "npc"), x=0.6, y=0.5)
+brewery_count_by_state %>% 
+  filter(count > 9) %>% 
+  mutate(fullname = paste(abbr2state(state), count, sep = " - ")) %>% 
+  ggplot() + 
+  annotation_custom(bg, -Inf, Inf, -Inf, Inf) + # beer background
+  geom_bar(aes(x=reorder(fullname, count), y = count),stat="identity", 
+           fill = "brown", 
+           color = "gold",
+           alpha = 0.9) + 
+  geom_rect(data=color_boxes,
+            mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
+            fill = color_boxes$color) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
-        axis.text.y = element_text(family = "Georgia", size = 5)) +
+        axis.text.y = element_text(family = "Georgia", size = 10)) +
   labs(title = "Breweries by State", x = "State", y="Breweries") + 
   coord_flip()
 ```
