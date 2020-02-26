@@ -5,7 +5,7 @@ library(SmartEDA)
 library(agricolae)
 library(caret)
 library(dbplyr)
-library(e1071)
+library(e1071) #Naive Bayes classifier
 library(gh)
 library(git2r)
 library(klaR)
