@@ -113,7 +113,7 @@ brewery_count_by_state %>%
 
 While accurate this graphic is less than helpful, so we've put the breweries on a map.
 
-```{r map_the_breweries} 
+```{r map_the_breweries, include=FALSE} 
 # Now that we have tidy brewery by state data, let's make a map
 plot_usmap(data=brewery_count_by_state, values = "count", labels=T) + 
   scale_fill_continuous(low="white", high="blue", name = "Breweries", label = scales::comma) +
