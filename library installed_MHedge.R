@@ -23,4 +23,7 @@ library(funModeling)
 library(Hmisc)
 library(plotly) # interactive plots and graphics
 library(GGally) # use of ggpairs
-
+library(extrafont) # tools for using fonts
+library(openintro) # data sets and supplemental functions from 'OpenIntro" Textbooks
+library(png) # read and write PNG images
+library(jpeg) # read and write JPEG images
