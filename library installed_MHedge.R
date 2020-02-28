@@ -5,7 +5,7 @@ library(SmartEDA)
 library(agricolae)
 library(caret)
 library(dbplyr)
-library(e1071)
+library(e1071) #Naive Bayes classifier
 library(gh)
 library(git2r)
 library(klaR)
@@ -23,4 +23,7 @@ library(funModeling)
 library(Hmisc)
 library(plotly) # interactive plots and graphics
 library(GGally) # use of ggpairs
-
+library(extrafont) # tools for using fonts
+library(openintro) # data sets and supplemental functions from 'OpenIntro" Textbooks
+library(png) # read and write PNG images
+library(jpeg) # read and write JPEG images
