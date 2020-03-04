@@ -144,10 +144,10 @@ adjData %>%
     geom_rect(data=color_boxes,                                         # zebra stripe the background
            mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
            fill = color_boxes$color) +
-  scale_y_continuous(limits = c(0, 0.10),                               # setup the y axis scale, and add 0.62
-                     breaks = sort(c(seq(0.25, 0.075, length.out = 3 ),# and 0.04 in it for reference
-                                     0.062, 0.04))) +
+  scale_y_continuous(breaks = sort(c(seq(0.035, 0.065, length.out = 3 ), # setup the y axis scale, and add 0.62
+                                     0.062, 0.04))) +                   # and 0.04 in it for reference
   geom_hline(yintercept = 0.062) +                                      # highlight the max at 0.062 abv
+  geom_hline(yintercept = 0.050) +                                      # highlight the med at 0.050 abv
   geom_hline(yintercept = 0.04) +                                       # highlight the min at 0.04 abv
     theme_minimal() +                                                   # clear the theme
   theme(panel.grid.minor = element_blank(),
@@ -155,8 +155,8 @@ adjData %>%
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10),      # set text attributes
         axis.text.x = element_text(family = "Verdana", angle=90, vjust = .02, hjust = 1)) + # rotate the x axis labels 90 degress
-    labs(title = "State Median Alcohol By Volume", x="", y="Alcohol By Volume") # +         # set the graph labels
-    # coord_fixed(ylim = c(0.025, 0.075))
+    labs(title = "State Median Alcohol By Volume", x="", y="Alcohol By Volume")  +         # set the graph labels
+    coord_cartesian(ylim = c(0.035, 0.065))
 ```
 
 ```{r median IBU per state}
