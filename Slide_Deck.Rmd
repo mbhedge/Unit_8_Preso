@@ -167,26 +167,41 @@ adjData %>% group_by(State) %>%
     annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
     geom_bar(aes(x=reorder(State, Median), y=Median),
       stat="identity", color="gold", fill="brown") +
-  scale_y_continuous(breaks = sort(c(seq(0, 60, length.out = 3 ), # setup the y axis scale, and add 0.62
-                                     16, 35, 55))) +                   # and 0.04 in it for reference
-      theme_minimal() +                                                   # clear the theme
-  geom_hline(yintercept = 55) +  
-  geom_hline(yintercept = 35) +  
-  geom_hline(yintercept = 16) +  
-  theme(panel.grid.minor = element_blank(),
+    geom_text(aes(x=reorder(State, Median), y = Median,label = round(Median), angle = 90), 
+      hjust = -.5, size = 3) + 
+    scale_y_continuous(breaks = sort(c(seq(0, 65, length.out = 3 ),      # setup the y axis scale, and add 0.62
+                                     16, 58))) +                   # and 0.04 in it for reference
+    theme_minimal() +                                                    # clear the theme
+    geom_hline(yintercept = 58) +  
+    geom_hline(yintercept = 32.5) +  
+    geom_hline(yintercept = 16) +  
+    theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10),      # set text attributes
         axis.text.x = element_text(family = "Verdana", angle=90, vjust = .4, hjust = 1)) + # rotate the x axis labels 90 degress
-    labs(title = "State Median IBU", x="", y="IBU") 
+    labs(title = "State Median IBU", x="", y="IBU") +
+    coord_cartesian(ylim = c(0, 65))
 ```
 
 ```{r highest IBU per state}
 adjData %>% group_by(State) %>%
   summarize(Max=max(IBU)) %>% 
+  mutate(State = abbr2state(str_trim(as.character(State)))) %>%         # turn 2 letter factor into full state name
   ggplot(aes(x=State, y=Max)) +
-  geom_bar(stat="identity") +
-  coord_flip()
+    annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
+    geom_bar(aes(x=reorder(State, Max), y=Max),
+      stat="identity", color="gold", fill="brown") +
+  theme_minimal() +                                                    # clear the theme
+  geom_hline(yintercept = 155) +  
+  geom_hline(yintercept = 90) +  
+  geom_hline(yintercept = 40) +  
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_text(family = "Georgia", size = 10),                        # set text attributes
+        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .4, hjust = 1))  # rotate the x axis labels 90 degress
+
 ```
 ```{r highest ABV per State }
 adjData %>% group_by(State) %>% summarize(Max=max(ABV)) %>% 
