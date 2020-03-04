@@ -33,6 +33,7 @@ library(extrafont)
 library(openintro)
 library(png)
 library(jpeg)
+library(stringi)
 
 loadfonts(quiet = TRUE)
 ```
@@ -72,8 +73,8 @@ brewery_count_by_state <- breweries %>% group_by(State) %>% summarise(count=n())
 
 brewery_count_by_state$State = as.character(brewery_count_by_state$State)
 brewery_count_by_state$State = str_trim(brewery_count_by_state$State)
- brewery_count_by_state = brewery_count_by_state %>% mutate(state=State)
- brewery_count_by_state = brewery_count_by_state[,3:2]
+brewery_count_by_state = brewery_count_by_state %>% mutate(state=State)
+brewery_count_by_state = brewery_count_by_state[,3:2]
 
 color_boxes <- data.frame(y1=seq(0,40,10), 
                            y2=seq(10,50,10),
@@ -83,10 +84,14 @@ color_boxes <- data.frame(y1=seq(0,40,10),
 brewery_count_by_state$state <- factor(brewery_count_by_state$state, levels = brewery_count_by_state$state[order(brewery_count_by_state$count)])
 
 # style from https://rpubs.com/chidungkt/392980
+
+# read in the photo background
 image <- readJPEG("beer_glass_background.jpg")
-bg <- rasterGrob(image, height = unit(1.01, "npc"), x=0.62, y=0.5)
+# scale the background for this chart
+bg <- rasterGrob(image, height = unit(1.5, "npc"), x=0.62, y=0.5)
+
 brewery_count_by_state %>% 
-  filter(count > 9) %>% 
+  # filter(count > 9) %>% 
   mutate(fullname = paste(abbr2state(state), count, sep = " - ")) %>% 
   ggplot() + 
   annotation_custom(bg, -Inf, Inf, -Inf, Inf) + # beer background
@@ -95,54 +100,63 @@ brewery_count_by_state %>%
            color = "gold",
            alpha = 0.9) + 
   geom_rect(data=color_boxes,
-            mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
-            fill = color_boxes$color) +
+           mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
+           fill = color_boxes$color) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
-        axis.text.y = element_text(family = "Georgia", size = 10)) +
-  labs(title = "States with 10 or More Breweries", x="", y="Number of Breweries") + 
-  coord_flip()
+        axis.text.y = element_text(family = "Georgia", size = 10),
+        axis.text.x = element_text(family = "Verdana", angle=90, hjust = 1)) +
+  labs(title = "States with 10 or More Breweries", x="", y="Number of Breweries")# +
+  # coord_flip()
 ```
 
 While accurate this graphic is less than helpful, so we've put the breweries on a map.
 
-```{r map_the_breweries} 
-# Now that we have tidy brewery by state data, let's make a map
-plot_usmap(data=brewery_count_by_state, values = "count", labels=T) + 
-  scale_fill_continuous(low="white", high="blue", name = "Breweries", label = scales::comma) +
-  theme(legend.position = "right")+
-  theme(panel.background = element_rect(colour = "black")) +
-  labs(title = "Breweries by State")
-```
-Let's get a better look at the northern east cost, it is a bit compressed
-```{r east_coast_breweries, include=FALSE}
-
-# let's get a better look at the east coast...
-plot_usmap(data=brewery_count_by_state, values = "count", labels=T, include = c(.new_england, .mid_atlantic)) + 
-  scale_fill_continuous(low="white", high="blue", name = "Breweries", label = scales::comma) +
-  theme(legend.position = "right")+
-  theme(panel.background = element_rect(colour = "black")) +
-  labs(title = "Breweries by State")
-
-```
-Be carefule here, where Pennsylvania has the highest number of breweries on this map, is in still only half the number of colorado on the previous slide, even though they are the same color.
 
 To perform the rest of the analysis, the data was checked for a number of inconsistencies including missing values.  Over half of the records(1405 of 2410) in the dataset did not have values for the IBU, and 62 of the entries did not have a value for ABV.
 
-To allow us to continue without removing any of the records for missing values, it was decided to impute the data with a k-NN on beers in the same "Style".  What this means is that, for a given beer, the algorithm will look at the beers in the same style, determine an appropriate IBU or ABV value, and replace the missing value in the sample.
+To allow us to continue without removing any of the records for missing values, it was decided to impute the data with a k-NN on beers in the same "Style".  What this means is that for a given beer, the algorithm will look at the collection of beers, find ones that match with it best, determine an appropriate IBU or ABV value, and replace the missing value in the sample.
 
-Another way to fill in the missing values in this case, would be to commission additional research and attempt to fill in the missing values by looking up the ABV/IBU for each beer.  This could be accomplished by looking at the beer's website, advertising materials, or calling the brewery and asking.
 
 ```{r impute data}
+# use the knnImputation() function from the Date Mining with R (DMwR) library to fill in missing data
 adjData <- data %>% knnImputation()
 ```
 
 ```{r median ABV per state}
-adjData %>% group_by(State) %>% summarize(Median=median(ABV)) %>% ggplot(aes(x=State, y=Median)) +
-  geom_bar(stat="identity") +
-  coord_flip()
+# read in the photo background
+image <- readJPEG("beer_glass_background.jpg")
+# scale the background for this chart
+bg <- rasterGrob(image, height = unit(1.5, "npc"), x=0.5, y=0.5)
+
+# create the alternating color background
+color_boxes <- data.frame(y1=seq(0.00, .06, .02), 
+                          y2=seq(0.02, .08, .02),
+                          color=rep(c("#BFEFFF20","#BFEFFF40"),
+                                   length.out = 4))
+
+adjData %>% 
+  group_by(State) %>% 
+  summarize(medabv=median(ABV)) %>%
+  mutate(State = abbr2state(str_trim(as.character(State)))) %>% # turn 2 letter factor into full state name
+  ggplot() +
+    annotation_custom(bg, -Inf, Inf, -Inf, Inf) + # beer background
+    geom_bar(aes(x=reorder(State, medabv), y=medabv),stat="identity", color="gold", fill="brown") +
+    geom_rect(data=color_boxes,
+           mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
+           fill = color_boxes$color) +
+    geom_text(aes(x=reorder(State, medabv), y=medabv, label=format(round(medabv,3), nsmall = 3)), size = 3, angle=90, hjust = -.4) +
+  scale_y_continuous(limits = c(0, 0.08)) +
+    theme_minimal() +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_text(family = "Georgia", size = 10),
+        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .02)) +
+    labs(title = "State Median Alcohol By Volume", x="", y="Alcohol By Volume") # +
+    # coord_fixed(ratio=200)
 ```
 
 ```{r median IBU per state}
