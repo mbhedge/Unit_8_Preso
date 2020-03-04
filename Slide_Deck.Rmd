@@ -41,7 +41,7 @@ Greetings Mr. CEO and Mr. CFO, other distinguished guests.
 
 Given the Beer and Brewery data, our research intends to answer several compelling questions for the business:
 1. How many breweries are present in each state?
-```{r import_beer_data}
+```{r import beer data}
 beers <- read.csv("Beers.csv")
 breweries <- read.csv("Breweries.csv")
 
@@ -56,34 +56,31 @@ data <- data %>%
   rename(Brewery = Name.y) %>%    # clean up munged names from merge
   rename(Brewery_ID = Brewery_id) # Make anything with _ID the same
 
-head(data, n = 6)
-tail(data,n = 6)
+head(data, n = 6)                 # First six from merged set
+tail(data,n = 6)                  # Last six from merged set
 
 ```
 
-```{r plot_brewery_map}
-# font_import()
-# extrafont::loadfonts(device="win")
+```{r Breweries per State}
+# font_import() # first time on a machine only.  Watch the "Console" window for a confirmation dialog
 
 # The following lines create a table that has the number of breweries
 # per state, then tidys up the columns into a format the usmaps library
 # understands
 brewery_count_by_state <- breweries %>% group_by(State) %>% summarise(count=n())
 
+brewery_count_by_state$State = as.character(brewery_count_by_state$State)    # convert factors to characters
+brewery_count_by_state$State = str_trim(brewery_count_by_state$State)        # remove leading space from string
+brewery_count_by_state = brewery_count_by_state %>% mutate(state=State)      # Capitolize State
+brewery_count_by_state = brewery_count_by_state[,3:2]                        # remove the old, non-capitolized state
 
-brewery_count_by_state$State = as.character(brewery_count_by_state$State)
-brewery_count_by_state$State = str_trim(brewery_count_by_state$State)
-brewery_count_by_state = brewery_count_by_state %>% mutate(state=State)
-brewery_count_by_state = brewery_count_by_state[,3:2]
-
-color_boxes <- data.frame(y1=seq(0,40,10), 
-                           y2=seq(10,50,10),
+color_boxes <- data.frame(y1=seq(0,40,10),                                   # this sets up an array of x and y coords, and colors to
+                           y2=seq(10,50,10),                                 # zebra stripe the background later
                            color=rep(c("#BFEFFF20","#BFEFFF40"),
                                      length.out = 5))
 
+# turn the states back into factors
 brewery_count_by_state$state <- factor(brewery_count_by_state$state, levels = brewery_count_by_state$state[order(brewery_count_by_state$count)])
-
-# style from https://rpubs.com/chidungkt/392980
 
 # read in the photo background
 image <- readJPEG("beer_glass_background.jpg")
@@ -100,13 +97,13 @@ brewery_count_by_state %>%                                                 # sen
             vjust = -0.5, size = 3) +                                      # draw the count up above the bars
   geom_rect(data=color_boxes, aes(ymin = y1, ymax = y2, 
                     xmin = -Inf, xmax = +Inf), fill = color_boxes$color) + # zebra stripe the background
-  theme_minimal() +
+  theme_minimal() +                                                        # clear out the theme
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
-        axis.text.y = element_text(family = "Georgia", size = 10),
+        axis.text.y = element_text(family = "Georgia", size = 10),              # set text attributes 
         axis.text.x = element_text(family = "Verdana", angle=90, hjust = 1)) +
-  labs(title = "Breweries per State", x="", y="Number of Breweries") 
+  labs(title = "Breweries per State", x="", y="Number of Breweries")            # set legend
 ```
 
 While accurate this graphic is less than helpful, so we've put the breweries on a map.
@@ -119,6 +116,8 @@ To allow us to continue without removing any of the records for missing values, 
 
 ```{r impute data}
 # use the knnImputation() function from the Date Mining with R (DMwR) library to fill in missing data
+# this method uses the available information in the remainder of the data frame to establish a kNN 
+# relationship and fill in missing values
 adjData <- data %>% knnImputation()
 ```
 
@@ -136,24 +135,28 @@ color_boxes <- data.frame(y1=seq(0.00, .06, .02),
 
 adjData %>% 
   group_by(State) %>% 
-  summarize(medabv=median(ABV)) %>%
-  mutate(State = abbr2state(str_trim(as.character(State)))) %>% # turn 2 letter factor into full state name
+  summarize(medabv=median(ABV)) %>%                                     # create a column named medabv from the mediab abv
+  mutate(State = abbr2state(str_trim(as.character(State)))) %>%         # turn 2 letter factor into full state name
   ggplot() +
-    annotation_custom(bg, -Inf, Inf, -Inf, Inf) + # beer background
-    geom_bar(aes(x=reorder(State, medabv), y=medabv),stat="identity", color="gold", fill="brown") +
-    geom_rect(data=color_boxes,
+    annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
+    geom_bar(aes(x=reorder(State, medabv), y=medabv),                   # plot the actual data
+             stat="identity", color="gold", fill="brown") +
+    geom_rect(data=color_boxes,                                         # zebra stripe the background
            mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
            fill = color_boxes$color) +
-    # geom_text(aes(x=reorder(State, medabv), y=medabv, label=format(round(medabv,3), nsmall = 3)), size = 3, angle=90, hjust = -.4) +
-  scale_y_continuous(limits = c(0, 0.10)) +
-    theme_minimal() +
+  scale_y_continuous(limits = c(0, 0.10),                               # setup the y axis scale, and add 0.62
+                     breaks = sort(c(seq(0.25, 0.075, length.out = 3 ),# and 0.04 in it for reference
+                                     0.062, 0.04))) +
+  geom_hline(yintercept = 0.062) +                                      # highlight the max at 0.062 abv
+  geom_hline(yintercept = 0.04) +                                       # highlight the min at 0.04 abv
+    theme_minimal() +                                                   # clear the theme
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
-        axis.text.y = element_text(family = "Georgia", size = 10),
-        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .02, hjust = 1)) +
-    labs(title = "State Median Alcohol By Volume", x="", y="Alcohol By Volume") # +
-    # coord_fixed(ratio=200)
+        axis.text.y = element_text(family = "Georgia", size = 10),      # set text attributes
+        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .02, hjust = 1)) + # rotate the x axis labels 90 degress
+    labs(title = "State Median Alcohol By Volume", x="", y="Alcohol By Volume") # +         # set the graph labels
+    # coord_fixed(ylim = c(0.025, 0.075))
 ```
 
 ```{r median IBU per state}
