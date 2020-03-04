@@ -3,9 +3,9 @@ title: "Unit_8_Preso"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
 output:
-  pdf_document: default
-  word_document: default
   html_document: default
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -88,7 +88,7 @@ brewery_count_by_state$state <- factor(brewery_count_by_state$state, levels = br
 # read in the photo background
 image <- readJPEG("beer_glass_background.jpg")
 # scale the background for this chart
-bg <- rasterGrob(image, height = unit(1.5, "npc"), x=0.62, y=0.5)
+bg <- rasterGrob(image, height = unit(1.9, "npc"), x=0.5, y=0.2)
 
 brewery_count_by_state %>% 
   # filter(count > 9) %>% 
@@ -99,17 +99,15 @@ brewery_count_by_state %>%
            fill = "brown", 
            color = "gold",
            alpha = 0.9) + 
-  geom_rect(data=color_boxes,
-           mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
-           fill = color_boxes$color) +
+  geom_rect(data=color_boxes, mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf), fill = color_boxes$color) +
+  # geom_text(aes(x=fullname, y = count), label=count ) +
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10),
         axis.text.x = element_text(family = "Verdana", angle=90, hjust = 1)) +
-  labs(title = "States with 10 or More Breweries", x="", y="Number of Breweries")# +
-  # coord_flip()
+  labs(title = "Breweries per State", x="", y="Number of Breweries") 
 ```
 
 While accurate this graphic is less than helpful, so we've put the breweries on a map.
@@ -148,13 +146,13 @@ adjData %>%
            mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
            fill = color_boxes$color) +
     geom_text(aes(x=reorder(State, medabv), y=medabv, label=format(round(medabv,3), nsmall = 3)), size = 3, angle=90, hjust = -.4) +
-  scale_y_continuous(limits = c(0, 0.08)) +
+  scale_y_continuous(limits = c(0, 0.10)) +
     theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10),
-        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .02)) +
+        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .02, hjust = 1)) +
     labs(title = "State Median Alcohol By Volume", x="", y="Alcohol By Volume") # +
     # coord_fixed(ratio=200)
 ```
