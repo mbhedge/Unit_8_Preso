@@ -33,6 +33,7 @@ library(extrafont)
 library(openintro)
 library(png)
 library(jpeg)
+library(stringi)
 
 loadfonts(quiet = TRUE)
 ```
@@ -113,26 +114,6 @@ brewery_count_by_state %>%
 
 While accurate this graphic is less than helpful, so we've put the breweries on a map.
 
-```{r map_the_breweries, include=FALSE} 
-# Now that we have tidy brewery by state data, let's make a map
-plot_usmap(data=brewery_count_by_state, values = "count", labels=T) + 
-  scale_fill_continuous(low="white", high="blue", name = "Breweries", label = scales::comma) +
-  theme(legend.position = "right")+
-  theme(panel.background = element_rect(colour = "black")) +
-  labs(title = "Breweries by State")
-```
-Let's get a better look at the northern east cost, it is a bit compressed
-```{r east_coast_breweries, include=FALSE}
-
-# let's get a better look at the east coast...
-plot_usmap(data=brewery_count_by_state, values = "count", labels=T, include = c(.new_england, .mid_atlantic)) + 
-  scale_fill_continuous(low="white", high="blue", name = "Breweries", label = scales::comma) +
-  theme(legend.position = "right")+
-  theme(panel.background = element_rect(colour = "black")) +
-  labs(title = "Breweries by State")
-
-```
-Be carefule here, where Pennsylvania has the highest number of breweries on this map, is in still only half the number of colorado on the previous slide, even though they are the same color.
 
 To perform the rest of the analysis, the data was checked for a number of inconsistencies including missing values.  Over half of the records(1405 of 2410) in the dataset did not have values for the IBU, and 62 of the entries did not have a value for ABV.
 
@@ -148,7 +129,7 @@ adjData <- data %>% knnImputation()
 # read in the photo background
 image <- readJPEG("beer_glass_background.jpg")
 # scale the background for this chart
-bg <- rasterGrob(image, height = unit(1, "npc"), x=0.5, y=0.5)
+bg <- rasterGrob(image, height = unit(1.5, "npc"), x=0.5, y=0.5)
 
 # create the alternating color background
 color_boxes <- data.frame(y1=seq(0.00, .06, .02), 
@@ -156,27 +137,26 @@ color_boxes <- data.frame(y1=seq(0.00, .06, .02),
                           color=rep(c("#BFEFFF20","#BFEFFF40"),
                                    length.out = 4))
 
-
 adjData %>% 
   group_by(State) %>% 
   summarize(medabv=median(ABV)) %>%
   mutate(State = abbr2state(str_trim(as.character(State)))) %>% # turn 2 letter factor into full state name
-  mutate(State = paste(State, round(medabv, 3), sep = " - ")) %>% # append the median ABV to the state name 
   ggplot() +
     annotation_custom(bg, -Inf, Inf, -Inf, Inf) + # beer background
-    geom_bar(aes(x=reorder(State, medabv), y=medabv),stat="identity") +
+    geom_bar(aes(x=reorder(State, medabv), y=medabv),stat="identity", color="gold", fill="brown") +
     geom_rect(data=color_boxes,
            mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
            fill = color_boxes$color) +
+    geom_text(aes(x=reorder(State, medabv), y=medabv, label=format(round(medabv,3), nsmall = 3)), size = 3, angle=90, hjust = -.4) +
+  scale_y_continuous(limits = c(0, 0.08)) +
     theme_minimal() +
-   # geom_text(aes(x=reorder(State, medabv), y=medabv),size=2, hjust=-1, color="red", label = medabv) +
-    theme(panel.grid.minor = element_blank(),
+  theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
-        axis.text.y = element_text(family = "Georgia", size = 10)) +
-    labs(title = "State Median Alcohol By Volume", x="", y="Alcohol By Volume") + 
-  coord_cartesian(xlim=c(0.3,10)) +
-  coord_flip()
+        axis.text.y = element_text(family = "Georgia", size = 10),
+        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .02)) +
+    labs(title = "State Median Alcohol By Volume", x="", y="Alcohol By Volume") # +
+    # coord_fixed(ratio=200)
 ```
 
 ```{r median IBU per state}
