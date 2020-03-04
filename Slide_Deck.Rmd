@@ -102,7 +102,7 @@ brewery_count_by_state %>%                                                 # sen
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10),              # set text attributes 
-        axis.text.x = element_text(family = "Verdana", angle=90, hjust = 1)) +
+        axis.text.x = element_text(family = "Verdana", angle=90, hjust = 1, vjust = .4)) +
   labs(title = "Breweries per State", x="", y="Number of Breweries")            # set legend
 ```
 
@@ -142,7 +142,7 @@ adjData %>%
     geom_bar(aes(x=reorder(State, medabv), y=medabv),                   # plot the actual data
              stat="identity", color="gold", fill="brown") +
     geom_rect(data=color_boxes,                                         # zebra stripe the background
-           mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
+           aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
            fill = color_boxes$color) +
   scale_y_continuous(breaks = sort(c(seq(0.035, 0.065, length.out = 3 ), # setup the y axis scale, and add 0.62
                                      0.062, 0.04))) +                   # and 0.04 in it for reference
@@ -154,21 +154,36 @@ adjData %>%
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10),      # set text attributes
-        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .02, hjust = 1)) + # rotate the x axis labels 90 degress
+        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .4, hjust = 1)) + # rotate the x axis labels 90 degress
     labs(title = "State Median Alcohol By Volume", x="", y="Alcohol By Volume")  +         # set the graph labels
     coord_cartesian(ylim = c(0.035, 0.065))
 ```
 
 ```{r median IBU per state}
-adjData %>% group_by(State) %>% summarize(Median=median(IBU)) %>% 
-  ggplot(aes(x=State, y=Median)) +
-  geom_bar(stat="identity") +
-  coord_flip()
-
+adjData %>% group_by(State) %>% 
+  summarize(Median=median(IBU)) %>% 
+  mutate(State = abbr2state(str_trim(as.character(State)))) %>%         # turn 2 letter factor into full state name
+  ggplot(aes(x=reorder(State, Median), y=Median)) +
+    annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
+    geom_bar(aes(x=reorder(State, Median), y=Median),
+      stat="identity", color="gold", fill="brown") +
+  scale_y_continuous(breaks = sort(c(seq(0, 60, length.out = 3 ), # setup the y axis scale, and add 0.62
+                                     16, 35, 55))) +                   # and 0.04 in it for reference
+      theme_minimal() +                                                   # clear the theme
+  geom_hline(yintercept = 55) +  
+  geom_hline(yintercept = 35) +  
+  geom_hline(yintercept = 16) +  
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_text(family = "Georgia", size = 10),      # set text attributes
+        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .4, hjust = 1)) + # rotate the x axis labels 90 degress
+    labs(title = "State Median IBU", x="", y="IBU") 
 ```
 
 ```{r highest IBU per state}
-adjData %>% group_by(State) %>% summarize(Max=max(IBU)) %>% 
+adjData %>% group_by(State) %>%
+  summarize(Max=max(IBU)) %>% 
   ggplot(aes(x=State, y=Max)) +
   geom_bar(stat="identity") +
   coord_flip()
