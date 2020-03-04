@@ -42,7 +42,7 @@ Greetings Mr. CEO and Mr. CFO, other distinguished guests.
 Given the Beer and Brewery data, our research intends to answer several compelling questions for the business:
 1. How many breweries are present in each state?
 ```{r import_beer_data}
-beers <- read.csv("./Beers.csv")
+beers <- read.csv("Beers.csv")
 breweries <- read.csv("Breweries.csv")
 
 # Question 2
@@ -90,17 +90,16 @@ image <- readJPEG("beer_glass_background.jpg")
 # scale the background for this chart
 bg <- rasterGrob(image, height = unit(1.9, "npc"), x=0.5, y=0.2)
 
-brewery_count_by_state %>% 
-  # filter(count > 9) %>% 
-  mutate(fullname = paste(abbr2state(state), count, sep = " - ")) %>% 
-  ggplot() + 
-  annotation_custom(bg, -Inf, Inf, -Inf, Inf) + # beer background
-  geom_bar(aes(x=reorder(fullname, count), y = count),stat="identity", 
-           fill = "brown", 
-           color = "gold",
-           alpha = 0.9) + 
-  geom_rect(data=color_boxes, mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf), fill = color_boxes$color) +
-  # geom_text(aes(x=fullname, y = count), label=count ) +
+brewery_count_by_state %>%                                                 # send in the brewery data
+  mutate(fullname = abbr2state(state)) %>%                                 # change the state abbr to full name
+  ggplot() +                     # send the data in ascending order
+  annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                            # add the background image
+  geom_bar(aes(x=reorder(fullname, count), y = count), 
+           stat="identity", fill = "brown", color = "gold", alpha = 0.9) + # plot the actual bars
+  geom_text(aes(x=reorder(fullname, count), y = count,label = count), 
+            vjust = -0.5, size = 3) +                                      # draw the count up above the bars
+  geom_rect(data=color_boxes, aes(ymin = y1, ymax = y2, 
+                    xmin = -Inf, xmax = +Inf), fill = color_boxes$color) + # zebra stripe the background
   theme_minimal() +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
@@ -145,7 +144,7 @@ adjData %>%
     geom_rect(data=color_boxes,
            mapping=aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
            fill = color_boxes$color) +
-    geom_text(aes(x=reorder(State, medabv), y=medabv, label=format(round(medabv,3), nsmall = 3)), size = 3, angle=90, hjust = -.4) +
+    # geom_text(aes(x=reorder(State, medabv), y=medabv, label=format(round(medabv,3), nsmall = 3)), size = 3, angle=90, hjust = -.4) +
   scale_y_continuous(limits = c(0, 0.10)) +
     theme_minimal() +
   theme(panel.grid.minor = element_blank(),
