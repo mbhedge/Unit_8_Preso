@@ -160,21 +160,27 @@ adjData %>%
 ```
 
 ```{r median IBU per state}
+
+# create the alternating color background
+color_boxes <- data.frame(y1=seq(0, 55, 10), 
+                          y2=seq(10, 65, 10),
+                          color=rep(c("#BFEFFF20","#BFEFFF40"),
+                                   length.out = 6))
+
+
 adjData %>% group_by(State) %>% 
   summarize(Median=median(IBU)) %>% 
   mutate(State = abbr2state(str_trim(as.character(State)))) %>%         # turn 2 letter factor into full state name
-  ggplot(aes(x=reorder(State, Median), y=Median)) +
+  ggplot() +
     annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
     geom_bar(aes(x=reorder(State, Median), y=Median),
       stat="identity", color="gold", fill="brown") +
     geom_text(aes(x=reorder(State, Median), y = Median,label = round(Median), angle = 90), 
       hjust = -.5, size = 3) + 
-    scale_y_continuous(breaks = sort(c(seq(0, 65, length.out = 3 ),      # setup the y axis scale, and add 0.62
-                                     16, 58))) +                   # and 0.04 in it for reference
-    theme_minimal() +                                                    # clear the theme
-    geom_hline(yintercept = 58) +  
-    geom_hline(yintercept = 32.5) +  
-    geom_hline(yintercept = 16) +  
+    geom_rect(data=color_boxes,                                         # zebra stripe the background
+           aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
+           fill = color_boxes$color) +
+    theme_minimal() +                                                   # clear the theme
     theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
@@ -192,23 +198,38 @@ adjData %>% group_by(State) %>%
     annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
     geom_bar(aes(x=reorder(State, Max), y=Max),
       stat="identity", color="gold", fill="brown") +
+    geom_text(aes(x=reorder(State, Max), y = Max,label = round(Max), angle = 90), 
+      hjust = -.5, size = 3) +
   theme_minimal() +                                                    # clear the theme
-  geom_hline(yintercept = 155) +  
-  geom_hline(yintercept = 90) +  
-  geom_hline(yintercept = 40) +  
+  geom_hline(yintercept = 150) +  
+  geom_hline(yintercept = 100) +  
+  geom_hline(yintercept = 50) + 
+  geom_hline(yintercept = 0) +  
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_text(family = "Georgia", size = 10),                        # set text attributes
+        axis.text.x = element_text(family = "Verdana", angle=90, vjust = .4, hjust = 1)) +# rotate the x axis labels 90 degress
+  labs(title = "State Max IBU", x="", y="IBU")
+
+```
+```{r highest ABV per State }
+adjData %>% 
+  group_by(State) %>% 
+  summarize(Max=max(ABV)) %>%
+  mutate(State = abbr2state(str_trim(as.character(State)))) %>%         # turn 2 letter factor into full state name
+  ggplot(aes(x=State, y=Max)) +
+  annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
+  geom_bar(aes(x=reorder(State, Max), y=Max),
+      stat="identity", color="gold", fill="brown") +
+  labs(title="Max ABV per State", y="ABV", x="State") +
+  theme_minimal() +                                                    # clear the theme
+  geom_hline(yintercept = 0.10) +  
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10),                        # set text attributes
         axis.text.x = element_text(family = "Verdana", angle=90, vjust = .4, hjust = 1))  # rotate the x axis labels 90 degress
-
-```
-```{r highest ABV per State }
-adjData %>% group_by(State) %>% summarize(Max=max(ABV)) %>% 
-  ggplot(aes(x=State, y=Max)) +
-  geom_bar(stat="identity") +
-  coord_flip() +
-  labs(title="Max ABV per State", y="ABV", x="State")
 ```
 
 The summary statistics of the ABV by state show a minimum ABV of 0.001, or 0.1% Alcohol by Volume.  This is either a data collection error or a set of Non-Alcoholic beers. The maximum ABV is 12.8%, and the mean ABV is 5.9% with 50% of the beers in the sample ranging from 5.0% to 6.7%.  A case could be made to discard the beers with minimum ABV as "not-beers" but rather "beer-like-beverages", as they are not subject to the same laws regulating the sale of alcoholic beverages.  Alternately, many persons are not allowed to drink alcohol because of religious beliefs or medical reasons, so it may be worth while to keep the non-alcoholic beers in the study.
