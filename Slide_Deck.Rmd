@@ -34,6 +34,7 @@ library(openintro)
 library(png)
 library(jpeg)
 library(stringi)
+library(ggpubr)
 
 loadfonts(quiet = TRUE)
 ```
@@ -191,21 +192,28 @@ adjData %>% group_by(State) %>%
 ```
 
 ```{r highest IBU per state}
+
+# create the alternating color background
+color_boxes <- data.frame(y1=seq(0, 150, 50), 
+                          y2=seq(50, 200, 50),
+                          color=rep(c("#BFEFFF20","#BFEFFF40"),
+                                   length.out = 4))
+
+
 adjData %>% group_by(State) %>%
   summarize(Max=max(IBU)) %>% 
   mutate(State = abbr2state(str_trim(as.character(State)))) %>%         # turn 2 letter factor into full state name
-  ggplot(aes(x=State, y=Max)) +
+  ggplot() +
     annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
     geom_bar(aes(x=reorder(State, Max), y=Max),
       stat="identity", color="gold", fill="brown") +
+    geom_rect(data=color_boxes,                                         # zebra stripe the background
+           aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
+           fill = color_boxes$color) +
     geom_text(aes(x=reorder(State, Max), y = Max,label = round(Max), angle = 90), 
       hjust = -.5, size = 3) +
-  theme_minimal() +                                                    # clear the theme
-  geom_hline(yintercept = 150) +  
-  geom_hline(yintercept = 100) +  
-  geom_hline(yintercept = 50) + 
-  geom_hline(yintercept = 0) +  
-  theme(panel.grid.minor = element_blank(),
+    theme_minimal() +                                                    # clear the theme
+    theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10),                        # set text attributes
@@ -214,17 +222,30 @@ adjData %>% group_by(State) %>%
 
 ```
 ```{r highest ABV per State }
+# create the alternating color background
+color_boxes <- data.frame(y1=seq(0.00, .12, .02), 
+                          y2=seq(0.02, .14, .02),
+                          color=rep(c("#BFEFFF20","#BFEFFF40"),
+                                   length.out = 7))
+
 adjData %>% 
   group_by(State) %>% 
   summarize(Max=max(ABV)) %>%
   mutate(State = abbr2state(str_trim(as.character(State)))) %>%         # turn 2 letter factor into full state name
-  ggplot(aes(x=State, y=Max)) +
+  ggplot() +
   annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
   geom_bar(aes(x=reorder(State, Max), y=Max),
       stat="identity", color="gold", fill="brown") +
-  labs(title="Max ABV per State", y="ABV", x="State") +
+  scale_y_continuous(breaks = sort(c(0.00, 0.06, 0.10, 0.14))) +               # setup the y axis scale, and add 0.62
+                                                                       # and 0.04 in it for reference
+  geom_hline(yintercept = 0.14) +                                      # highlight the max at 0.062 abv
+  geom_hline(yintercept = 0.10) +                                      # highlight the med at 0.050 abv    
+  geom_hline(yintercept = 0.06) +                                      # highlight the min at 0.04 abv
+                                                                       
+  geom_rect(data=color_boxes,                                          # zebra stripe the background
+      aes(ymin = y1, ymax = y2, xmin = -Inf, xmax = +Inf),
+      fill = color_boxes$color) + labs(title="Max ABV per State", y="ABV", x="State") +
   theme_minimal() +                                                    # clear the theme
-  geom_hline(yintercept = 0.10) +  
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
@@ -236,30 +257,53 @@ The summary statistics of the ABV by state show a minimum ABV of 0.001, or 0.1% 
 ```{r summary stats of abv}
 adjData %>% select(ABV) %>% summary()
 ```
-The distribution of Alcohol by Volume peaks at 5.9%, and shows a right skew, indicating that the set of beers sampled show a tendency to start at around 5% ABV, with a large grouping of beers in that 5.0%-6.7%, then a long tail reaching into higher and higher ABV numbers.  Fewer beers were below the 5.0% ABV mark.  From this graph, the distribution of ABV in beers appears to be more logarithmic than normal.
+The distribution of Alcohol by Volume peaks at 5.9%, and shows a right skew, indicating that the set of beers sampled show a tendency to start at around 5% ABV, with a large grouping of beers in that 5.0%-6.7%, then a long tail reaching into higher and higher ABV numbers.  Fewer beers were below the 5.0% ABV mark.  This shows a trend towards making beers with higher and higher ABV, indicating a potential untapped market at lower alcohol contents.
 ```{r histogram of ABV, large binwidth}
-adjData %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
+adjData %>% filter(!is.na(ABV)) %>% 
+  ggplot(aes(x=ABV)) +
+  annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
   geom_histogram(aes(y=..density..),binwidth = 0.005, na.rm = TRUE, show.legend = TRUE) +
   geom_density(alpha=0.2, fill="#FF6666", color="red")
 ```
-The Boxplot of ABV gives a better look at the number of outliers on each end of the ABV values.  Below the bottom whisker, we see a small number of outliers near 0.1% ABV, with many more outliers above the top whisker ranging from about 6.7% to 13%  ABV.
-```{r boxplot of ABV}
-adjData %>% filter(!is.na(ABV)) %>% ggplot() +
-  geom_boxplot(aes(y=ABV))
+
+
+Using the original data set to plot the ABV vs. IBU with a linear model regression line, we see an "up and to the right" correlation between IBU and ABV.  Pearson's Correlation is 0.67, indication a fair amount of positive correlation.
+```{r relationship between IBU and ABV}
+data %>% select(c(IBU, ABV)) %>% ggplot() +
+  annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
+  geom_point(aes(x=IBU, y=ABV), position = "jitter", na.rm = TRUE) +
+  geom_smooth(aes(x=IBU, y=ABV), method="lm", na.rm = TRUE) +
+  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 100, label.y = 0.010, na.rm = TRUE) +
+  annotate("text", x=117, y=0.017, label="Pearson's Correlation") +
+  labs(title = "Correlation of ABV vs. IBU", x="ABV", y="IBU")
 ```
-Another interesting point about the histogram, the values of ABV do not appear to be purely continuous.  Instead, if we choose a smaller bin width on the ABV values, we can see a definite trend to have a beer with a specific ABV.
-```{r histogram of ABV, small binwidth}
-adjData %>% filter(!is.na(ABV)) %>% ggplot(aes(x=ABV)) +
-  geom_histogram(aes(y=..density..),binwidth = 0.001, na.rm = TRUE, show.legend = TRUE) +
-  geom_density(alpha=0.2, fill="#FF6666", color="red")
-```
-Plotting ABU vs. ABV as dots, then adding a linear model regression line shows an "up and to the right" correlation between IBU and ABV.
+If we use the imputed dataset however, the additional data tends toward the mean and the correlation drops to 54%.  Even though it lost 13% correlation points, it is still a significant positive correlation.
 ```{r relationship between IBU and ABV}
 adjData %>% select(c(IBU, ABV)) %>% ggplot() +
+  annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
   geom_point(aes(x=IBU, y=ABV), position = "jitter", na.rm = TRUE) +
-  geom_smooth(aes(x=IBU, y=ABV), method="lm", na.rm = TRUE)
+  geom_smooth(aes(x=IBU, y=ABV), method="lm", na.rm = TRUE) +
+  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 100, label.y = 0.010, na.rm = TRUE) +
+  annotate("text", x=117, y=0.017, label="Pearson's Correlation") +
+  labs(title = "Correlation of ABV vs. IBU", x="ABV", y="IBU")
 ```
+
 A more concrete indication of this correlation is given by a different plot.  Here, we are shown that the correlation is 0.67, or 67%.  While this shows a correlation, it is not a "strong" one, as there is a lot of variance between IBU and ABV.
 ```{r ggpairs of IBU v. ABV}
-adjData %>% select(c(IBU,ABV)) %>% ggpairs()
+data %>% 
+  select(c(IBU,ABV)) %>% 
+  filter(!is.na(IBU))%>% 
+  ggpairs() +
+    annotation_custom(bg, -Inf, Inf, -Inf, Inf)                       # beer background
+
 ```
+```{r Unnamed data exploration}
+adjData %>% 
+  group_by(Brewery) %>% 
+  summarize(count=n()) %>% 
+  filter(count > 19) %>%  
+  ggplot() + 
+    geom_bar(aes(x=reorder(Brewery, count), y=count),stat = "identity") + 
+    theme(axis.text.x = element_text(family = "Verdana", angle=90))
+```
+
