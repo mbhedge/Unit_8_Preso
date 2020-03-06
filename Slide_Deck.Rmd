@@ -291,7 +291,7 @@ adjData %>% select(c(IBU, ABV)) %>% ggplot() +
   labs(title = "Correlation of ABV vs. IBU", x="ABV", y="IBU")
 ```
 
-A more concrete indication of this correlation is given by a different plot.  Here, we are shown that the correlation is 0.67, or 67%.  While this 
+
 ```{r Unnamed data exploration}
 adjData %>% 
   group_by(Brewery) %>% 
@@ -304,6 +304,22 @@ adjData %>%
 
 ```{r knn classification for IBU of Ales}
 # we will use the un-imputed data for this, as the data is much more accurate
+# pull out the IPAs first
+ipas <- data %>% 
+  filter(!is.na(IBU) & !is.na(ABV)) %>% 
+  filter(str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE)))
+
+# then the "other" ales
+ales <- data %>% 
+  filter(!is.na(IBU) & !is.na(ABV)) %>% 
+  filter(str_detect(Style, regex("\\bale\\b", ignore_case = TRUE, multiline = FALSE))) %>% 
+  filter(!str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE)))
+
+
+
+summary(ipas$IBU)
+View(ipas)
+View(ales)
 
 ```
 
