@@ -303,6 +303,10 @@ adjData %>%
 ```
 
 ```{r knn classification for IBU of Ales}
+#install.packages("ggvis")
+library(ggvis)
+library(class)
+
 # we will use the un-imputed data for this, as the data is much more accurate
 # pull out the IPAs first
 ipas <- data %>% 
@@ -318,6 +322,20 @@ ales <- data %>%
 
 
 summary(ipas$IBU)
+summary(ales$IBU)
+summary(ipas$ABV)
+summary(ales$ABV)
+
+ipas %>% ggplot(aes(x=IBU, y=ABV)) +
+  geom_point() + geom_smooth(method="glm") + 
+  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE)
+
+ales %>% ggplot(aes(x=IBU, y=ABV)) + 
+  geom_point() + geom_smooth(method="glm") + 
+  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE)
+
+describe(ipas)
+
 View(ipas)
 View(ales)
 
