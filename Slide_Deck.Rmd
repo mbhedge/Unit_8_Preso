@@ -3,8 +3,8 @@ title: "Unit_8_Preso"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
 output:
-  html_document: default
   word_document: default
+  html_document: default
   pdf_document: default
 ---
 
