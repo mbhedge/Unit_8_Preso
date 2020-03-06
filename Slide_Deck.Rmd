@@ -21,8 +21,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # if(!require(GGally)) {install.packages("GGally")}
 # if(!require(extrafont)) {install.packages("extrafont")}
 # if(!require(openintro)) {install.packages("openintro")} # abbr2state
-# if(!require(png)) {install.packages("png")} # abbr2state
-# if(!require(jpeg)) {install.packages("jpeg")} # abbr2state
+# if(!require(png)) {install.packages("png")} 
+# if(!require(jpeg)) {install.packages("jpeg")}
+# if(!require(ggpubr)) {install.packages("ggpubr")}
 
 
 library(tidyverse)
@@ -35,6 +36,7 @@ library(png)
 library(jpeg)
 library(stringi)
 library(ggpubr)
+library(class)
 
 loadfonts(quiet = TRUE)
 ```
@@ -305,5 +307,10 @@ adjData %>%
   ggplot() + 
     geom_bar(aes(x=reorder(Brewery, count), y=count),stat = "identity") + 
     theme(axis.text.x = element_text(family = "Verdana", angle=90))
+```
+
+```{r knn classification for IBU of Ales}
+# we will use the un-imputed data for this, as the data is much more accurate
+
 ```
 
