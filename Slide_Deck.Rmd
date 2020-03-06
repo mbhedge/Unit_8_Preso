@@ -3,12 +3,12 @@ title: "Unit 8 Presentation"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
 <<<<<<< HEAD
-#output:
-#  word_document: default
-#  html_document: default
-#  pdf_document: default
-#  pdf_document: default
-#  word_document: default
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+  pdf_document: default
+  word_document: default
 =======
 output:
   word_document: default
