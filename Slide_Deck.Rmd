@@ -2,15 +2,12 @@
 title: "Unit_8_Preso"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
-output:
-<<<<<<< HEAD
-  word_document: default
-  pdf_document: default
-=======
->>>>>>> 290b8810be6b07b51942b4874bd0058c78a830e5
-  html_document: default
-  word_document: default
-  pdf_document: default
+#output:
+#  word_document: default
+#  html_document: default
+#  pdf_document: default
+#  pdf_document: default
+#  word_document: default
 ---
 
 ```{r setup, include=FALSE}
