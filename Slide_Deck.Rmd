@@ -265,6 +265,7 @@ adjData %>% filter(!is.na(ABV)) %>%
   ggplot(aes(x=ABV)) +
   annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
   geom_histogram(aes(y=..density..),binwidth = 0.005, na.rm = TRUE, show.legend = TRUE) +
+  labs(title="Frequency of ABV", y="ABV", x="State") +
   geom_density(alpha=0.2, fill="#FF6666", color="red")
 ```
 
@@ -280,7 +281,7 @@ data %>% select(c(IBU, ABV)) %>% ggplot() +
   labs(title = "Correlation of ABV vs. IBU", x="ABV", y="IBU")
 ```
 If we use the imputed dataset however, the additional data tends toward the mean and the correlation drops to 54%.  Even though it lost 13% correlation points, it is still a significant positive correlation.
-```{r relationship between IBU and ABV}
+```{r relationship between adjusted IBU and ABV}
 adjData %>% select(c(IBU, ABV)) %>% ggplot() +
   annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
   geom_point(aes(x=IBU, y=ABV), position = "jitter", na.rm = TRUE) +
@@ -290,15 +291,7 @@ adjData %>% select(c(IBU, ABV)) %>% ggplot() +
   labs(title = "Correlation of ABV vs. IBU", x="ABV", y="IBU")
 ```
 
-A more concrete indication of this correlation is given by a different plot.  Here, we are shown that the correlation is 0.67, or 67%.  While this shows a correlation, it is not a "strong" one, as there is a lot of variance between IBU and ABV.
-```{r ggpairs of IBU v. ABV}
-data %>% 
-  select(c(IBU,ABV)) %>% 
-  filter(!is.na(IBU))%>% 
-  ggpairs() +
-    annotation_custom(bg, -Inf, Inf, -Inf, Inf)                       # beer background
-
-```
+A more concrete indication of this correlation is given by a different plot.  Here, we are shown that the correlation is 0.67, or 67%.  While this 
 ```{r Unnamed data exploration}
 adjData %>% 
   group_by(Brewery) %>% 
