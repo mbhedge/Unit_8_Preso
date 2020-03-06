@@ -3,8 +3,8 @@ title: "Unit_8_Preso"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
 output:
-  pdf_document: default
   word_document: default
+  pdf_document: default
   html_document: default
 ---
 
@@ -108,7 +108,7 @@ brewery_count_by_state %>%
         axis.ticks = element_blank(),
         axis.text.y = element_text(family = "Georgia", size = 10),
         axis.text.x = element_text(family = "Verdana", angle=90, hjust = 1)) +
-  labs(title = "States with 10 or More Breweries", x="", y="Number of Breweries")# +
+  labs(title = "Breweries per State", x="", y="Number of Breweries")# +
   # coord_flip()
 ```
 

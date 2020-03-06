@@ -42,8 +42,9 @@ total_BR
 
 p = Breweries %>% 
   ggplot(aes(y=total_BR)) +
-  geom_boxplot() +
-  ggplotly(Breweries$State)
+  geom_boxplot() #+
+  ggplot(Breweries$State)
+
 
 Beers
 Breweries
@@ -61,7 +62,7 @@ str(All_Beer)
 
 All_Beer %>% 
   select(ABV,IBU,State) %>% 
-  ggpairs(aes(color="State"), cardinality_threshold = NULL, bins)
+  ggpairs(aes(color="State"), cardinality_threshold = NULL)
 
 z = All_Beer %>% 
   ggplot(aes(x="state")) +
@@ -128,4 +129,19 @@ head(All_Beer)
 max_abv <- All_Beer %>% 
     select(All_Beer, ABV,IBU,State) %>%
   rev(sort(ABV))
+
+adjData %>% group_by("Style") %>% summarize(Median=median(IBU)) %>% 
+  ggplot(aes(x="Style", y=Median)) +
+  geom_bar(stat="identity") #+
+  coord_flip()
   
+adjData %>% group_by(Style) %>% summarize(Median=median(Ounces)) %>% 
+  ggplot(aes(x=Style, y=Median)) +
+  geom_bar(stat="identity") +
+  coord_flip()
+
+adjData %>% 
+  select(Style, Ounces) %>% 
+  ggpairs(aes(color="Style"), cardinality_threshold = NULL)
+
+str(adjData)
