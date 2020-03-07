@@ -308,7 +308,7 @@ adjData %>% select(c(IBU, ABV)) %>% ggplot() +
 ```
 
 
-```{r Unnamed data exploration}
+```{r Unnamed data exploration, include=FALSE}
 adjData %>% 
   group_by(Brewery) %>% 
   summarize(count=n()) %>% 
@@ -322,38 +322,146 @@ adjData %>%
 #install.packages("ggvis")
 library(ggvis)
 library(class)
+library(caret)
 
 # we will use the un-imputed data for this, as the data is much more accurate
 # pull out the IPAs first
 ipas <- data %>% 
   filter(!is.na(IBU) & !is.na(ABV)) %>% 
-  filter(str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE)))
+  filter(str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE))) %>% 
+  mutate(ipa=TRUE)
 
 # then the "other" ales
-ales <- data %>% 
+otherAles <- data %>% 
   filter(!is.na(IBU) & !is.na(ABV)) %>% 
   filter(str_detect(Style, regex("\\bale\\b", ignore_case = TRUE, multiline = FALSE))) %>% 
-  filter(!str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE)))
+  filter(!str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE))) %>% 
+  mutate(ipa=FALSE)
 
+allAles <- rbind(ipas, otherAles)
 
+```
+```{r draw ellipse around centroid}
+if(!require(ggforce)) {install.packages("ggforce")}
+if(!require(concaveman)) {install.packages("concaveman")}
+library(ggforce)
+library(concaveman)
+
+allAles %>% ggplot(aes(x=IBU, y=ABV)) +
+  annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
+  geom_point(aes(color = ipa)) +
+  geom_density2d(aes(color=ipa)) +
+
+  labs(title = "IBU x ABV for IPAs and Other Ales", color = "IPA?")
+
+```
+If we map the IBU vs. the ABV for the groups "IPA" and "Others", then add contour lines to show the greatest concentration of values, we can clearly see the groupings of IBU and ABV for Others to be much lower in IBU and ABV than the IPAs.  While we can see that there are clearly some Other ales in the region associated with IPAs, we'd like to know if the two groups are distinct enough that we can predict the Style of beer from the IBU/ABV alone.
+
+```{r summary statistics on IBU and ABV}
 
 summary(ipas$IBU)
-summary(ales$IBU)
+summary(otherAles$IBU)
 summary(ipas$ABV)
-summary(ales$ABV)
+summary(otherAles$ABV)
 
 ipas %>% ggplot(aes(x=IBU, y=ABV)) +
   geom_point() + geom_smooth(method="glm") + 
-  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE)
+  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 100, label.y = 0.010, na.rm = TRUE) +
+  labs(title = "India Pale Ale IBU/ABV Correlation")
 
-ales %>% ggplot(aes(x=IBU, y=ABV)) + 
+otherAles %>% ggplot(aes(x=IBU, y=ABV)) + 
   geom_point() + geom_smooth(method="glm") + 
-  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE)
+  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE) +
+  labs(title = "Non-IPA IBU/ABV Correlation")
+```
 
-describe(ipas)
 
-View(ipas)
-View(ales)
+```{r run a 90% train/test knn on ipas}
+# run a set of tests to determine best k value
+iterations = 100 # the number of tests to run
+k_runs = 50 # the number of "k"s to run in each test
+
+# a place to hold the master data
+masterAcc = matrix(nrow = iterations, ncol=k_runs)
+
+for(j in 1:iterations) {
+  # accs = data.frame(accuracy = numeric(k_runs), k=numeric(k_runs))
+
+  # randomize the sample set for this test
+  ran <- sample(1:nrow(allAles), 0.9 * nrow(allAles))
+  ipa_train <- allAles[ran,]
+  ipa_test <- allAles[-ran,]
+  
+  # run the 'k's
+  for(i in 1:k_runs) {
+    classifications = knn(ipa_train[,c(4,5)], ipa_test[,c(4,5)], ipa_train$ipa, k=i, prob = TRUE)
+    CM = confusionMatrix(table(ipa_test$ipa, classifications))
+    masterAcc[j,i] = CM$overall[1]
+  }
+}
+```
+```{r plot the mean accuracies from the knn test}
+
+MeanAcc = colMeans(masterAcc)
+plot(seq(1,k_runs,1),MeanAcc, type="l")
+
+
+
+
+# run a single test with the experimentally gathered 'k' value
+ipa_pr <- knn(ipa_train[,c(4,5)], ipa_test[,c(4,5)], ipa_train$ipa, k=5, prob = TRUE)
+
+# get the statistics of the 
+confusionMatrix(table(ipa_test$ipa, ipa_pr))
+
+
 
 ```
+```{r internal cv knn}
+set.seed(1972)
+iterations = 100
+k_runs = 50
+
+masterAcc = matrix(nrow = iterations, ncol = k_runs)
+for(j in 1:iterations) {
+  accs = data.frame(accuracy = numeric(k_runs), k = numeric(k_runs))
+  for(i in 1:k_runs) {
+    classifications = knn.cv(allAles[,c(4,5)], allAles$ipa, k=i, prob = TRUE)
+    CM = confusionMatrix(table(allAles$ipa, classifications))
+    masterAcc[j,i] = CM$overall[1]
+  }
+}
+
+MeanAcc = colMeans(masterAcc)
+plot(seq(1,k_runs,1), MeanAcc, type="l")
+
+```
+
+```{r take the k from knn.cv and get actual parameters}
+set.seed(1972)
+classifications = knn.cv(allAles[,c(4,5)], allAles$ipa, k=5, prob = TRUE)
+confusionMatrix(table(allAles$ipa, classifications))
+```
+
+The Internal Cross Validation k-Nearest Neighbor classification tells us that there is enough difference in the IBU/ABV of India Pale Ales (IPAs) to determine the Style of beer roughly 86% of the time, just from the values of IBU and ABV.  We have confidence that 95% of the time, the average accuracy of the kNN model used would be between 84% and 88% accuracy.
+
+
+```{r investigate home state from IBU, ABV, Style}
+
+# we must recode string factors as numbers for the distance algorithm in
+# the kNN classifier to work properly
+allAles <- allAles %>% 
+  mutate(city_id = as.integer(City)) %>% 
+  mutate(style_id = as.integer(Style))
+
+classifications = knn.cv(allAles[,c(4,5,13)], allAles$State, k=1, prob = TRUE)
+CM = confusionMatrix(table(allAles$State, classifications))
+CM$overall[1]
+```
+If we assume that:
+
+* current breweries are selling most of their beer locally
+* that they are making beers which sell well in their areas
+
+It could be beneficial to know what types of beer would sell best in a given state based on what is currently being produced in that state. Using a kNN classification that takes into account IBU, ABV and Style of beer, we can predict with around a 30% success rate the state that beer would most fit into.  30% may not sound like much, but compared to a purely random 1-in-50 chance of picking the right state (a 2% probability), 30% is a 15x improvement.
 
