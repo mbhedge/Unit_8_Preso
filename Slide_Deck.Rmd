@@ -306,38 +306,103 @@ adjData %>%
 #install.packages("ggvis")
 library(ggvis)
 library(class)
+library(caret)
 
 # we will use the un-imputed data for this, as the data is much more accurate
 # pull out the IPAs first
 ipas <- data %>% 
   filter(!is.na(IBU) & !is.na(ABV)) %>% 
-  filter(str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE)))
+  filter(str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE))) %>% 
+  mutate(ipa=TRUE)
 
 # then the "other" ales
-ales <- data %>% 
+otherAles <- data %>% 
   filter(!is.na(IBU) & !is.na(ABV)) %>% 
   filter(str_detect(Style, regex("\\bale\\b", ignore_case = TRUE, multiline = FALSE))) %>% 
-  filter(!str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE)))
+  filter(!str_detect(Style, regex("\\bipa\\b", ignore_case = TRUE, multiline = FALSE))) %>% 
+  mutate(ipa=FALSE)
 
+allAles <- rbind(ipas, otherAles)
 
+```
+
+```{r}
 
 summary(ipas$IBU)
-summary(ales$IBU)
+summary(otherAles$IBU)
 summary(ipas$ABV)
-summary(ales$ABV)
+summary(otherAles$ABV)
 
 ipas %>% ggplot(aes(x=IBU, y=ABV)) +
   geom_point() + geom_smooth(method="glm") + 
   stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE)
 
-ales %>% ggplot(aes(x=IBU, y=ABV)) + 
+otherAles %>% ggplot(aes(x=IBU, y=ABV)) + 
   geom_point() + geom_smooth(method="glm") + 
   stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE)
+```
 
-describe(ipas)
 
-View(ipas)
-View(ales)
+```{r run the knn on ipas}
+# run a set of tests to determine best k value
+iterations = 100 # the number of tests to run
+k_runs = 50 # the number of "k"s to run in each test
+
+# a place to hold the master data
+masterAcc = matrix(nrow = iterations, ncol=k_runs)
+
+for(j in 1:iterations) {
+  # accs = data.frame(accuracy = numeric(k_runs), k=numeric(k_runs))
+
+  # randomize the sample set for this test
+  ran <- sample(1:nrow(allAles), 0.9 * nrow(allAles))
+  ipa_train <- allAles[ran,]
+  ipa_test <- allAles[-ran,]
+  
+  # run the 'k's
+  for(i in 1:k_runs) {
+    classifications = knn(ipa_train[,c(4,5)], ipa_test[,c(4,5)], ipa_train$ipa, k=i, prob = TRUE)
+    CM = confusionMatrix(table(ipa_test$ipa, classifications))
+    masterAcc[j,i] = CM$overall[1]
+  }
+}
+```
+```{r plot the mean accuracies from the knn test}
+
+MeanAcc = colMeans(masterAcc)
+plot(seq(1,k_runs,1),MeanAcc, type="l")
+
+
+
+
+# run a single test with the experimentally gathered 'k' value
+ipa_pr <- knn(ipa_train[,c(4,5)], ipa_test[,c(4,5)], ipa_train$ipa, k=5, prob = TRUE)
+
+# get the statistics of the 
+confusionMatrix(table(ipa_test$ipa, ipa_pr))
+
+
 
 ```
+```{r internal cv knn}
+
+classifications = knn.cv(allAles[,c(4,5)], allAles$ipa, k=3)
+confusionMatrix(classifications, as.factor(allAles$ipa))
+
+```
+
+```{r boxplot of ABV for IPA/nonIPA}
+allAles %>% 
+  mutate(ipa=as.factor(ipa)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ipa, y = ABV, fill = ipa, group =ipa))
+```
+
+```{r boxplot of IBU for IPA/nonIPA}
+allAles %>% 
+  mutate(ipa=as.factor(ipa)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ipa, y = IBU, fill = ipa, group =ipa))
+```
+
 
