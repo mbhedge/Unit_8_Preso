@@ -325,6 +325,21 @@ otherAles <- data %>%
 allAles <- rbind(ipas, otherAles)
 
 ```
+```{r draw ellipse around centroid}
+if(!require(ggforce)) {install.packages("ggforce")}
+if(!require(concaveman)) {install.packages("concaveman")}
+library(ggforce)
+library(concaveman)
+
+allAles %>% ggplot(aes(x=IBU, y=ABV)) +
+  annotation_custom(bg, -Inf, Inf, -Inf, Inf) +                       # beer background
+  geom_point(aes(color = ipa)) +
+  geom_density2d(aes(color=ipa)) +
+
+  labs(title = "IBU x ABV for IPAs and Other Ales", color = "IPA?")
+
+```
+If we map the IBU vs. the ABV for the groups "IPA" and "Others", then add contour lines to show the greatest concentration of values, we can clearly see the groupings of IBU and ABV for Others to be much lower in IBU and ABV than the IPAs.
 
 ```{r}
 
