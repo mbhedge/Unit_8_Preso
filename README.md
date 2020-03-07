@@ -6,7 +6,7 @@
  * Unit_8_Preso.Rproj
     The r project file that will load the environment into r
     
- * Unit 8 Case Study_Nelson_Hedge.pptx
+ * Unit 9 Case Study_Nelson_Hedge.pptx
     The output PowerPoint file that contains the presentation deck
     
  * Slide_Deck.Rmd
