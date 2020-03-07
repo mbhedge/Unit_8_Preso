@@ -2,11 +2,11 @@
 title: "Unit 8 Presentation"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
+
 output:
-  pdf_document: default
   word_document: default
   html_document: default
----
+  pdf_document: default
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -108,9 +108,6 @@ brewery_count_by_state %>%                                                 # sen
         axis.text.x = element_text(family = "Verdana", angle=90, hjust = 1, vjust = .4)) +
   labs(title = "Breweries per State", x="", y="Number of Breweries")            # set legend
 ```
-
-While accurate this graphic is less than helpful, so we've put the breweries on a map.
-
 
 To perform the rest of the analysis, the data was checked for a number of inconsistencies including missing values.  Over half of the records(1405 of 2410) in the dataset did not have values for the IBU, and 62 of the entries did not have a value for ABV.
 
