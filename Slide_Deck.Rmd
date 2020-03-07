@@ -7,7 +7,7 @@ output:
   word_document: default
   html_document: default
   pdf_document: default
-
+---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -275,7 +275,7 @@ data %>% select(c(IBU, ABV)) %>% ggplot() +
   geom_smooth(aes(x=IBU, y=ABV), method="lm", na.rm = TRUE) +
   stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 100, label.y = 0.010, na.rm = TRUE) +
   annotate("text", x=117, y=0.017, label="Pearson's Correlation") +
-  labs(title = "Correlation of ABV vs. IBU", x="ABV", y="IBU")
+  labs(title = "Correlation of ABV vs. IBU", x="IBU", y="ABV")
 ```
 If we use the imputed dataset however, the additional data tends toward the mean and the correlation drops to 54%.  Even though it lost 13% correlation points, it is still a significant positive correlation.
 ```{r relationship between adjusted IBU and ABV}
@@ -285,7 +285,7 @@ adjData %>% select(c(IBU, ABV)) %>% ggplot() +
   geom_smooth(aes(x=IBU, y=ABV), method="lm", na.rm = TRUE) +
   stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 100, label.y = 0.010, na.rm = TRUE) +
   annotate("text", x=117, y=0.017, label="Pearson's Correlation") +
-  labs(title = "Correlation of ABV vs. IBU", x="ABV", y="IBU")
+  labs(title = "Correlation of ABV vs. IBU", x="IBU", y="ABV")
 ```
 
 
