@@ -2,21 +2,12 @@
 title: "Unit 8 Presentation"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
-<<<<<<< HEAD
-output:
-  word_document: default
-  html_document: default
-  pdf_document: default
-  pdf_document: default
-  word_document: default
-=======
-output:
-  word_document: default
-  html_document: default
-  pdf_document: default
->>>>>>> 3f3220484fd8536e7e86ce29f1f9a01a6e066a5f
----
 
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -113,20 +104,10 @@ brewery_count_by_state %>%                                                 # sen
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         axis.ticks = element_blank(),
-<<<<<<< HEAD
-        axis.text.y = element_text(family = "Georgia", size = 10),
-        axis.text.x = element_text(family = "Verdana", angle=90, hjust = 1)) +
-  labs(title = "Breweries per State", x="", y="Number of Breweries")# +
-  # coord_flip()
-=======
         axis.text.y = element_text(family = "Georgia", size = 10),              # set text attributes 
         axis.text.x = element_text(family = "Verdana", angle=90, hjust = 1, vjust = .4)) +
   labs(title = "Breweries per State", x="", y="Number of Breweries")            # set legend
->>>>>>> 290b8810be6b07b51942b4874bd0058c78a830e5
 ```
-
-While accurate this graphic is less than helpful, so we've put the breweries on a map.
-
 
 To perform the rest of the analysis, the data was checked for a number of inconsistencies including missing values.  Over half of the records(1405 of 2410) in the dataset did not have values for the IBU, and 62 of the entries did not have a value for ABV.
 
@@ -294,7 +275,7 @@ data %>% select(c(IBU, ABV)) %>% ggplot() +
   geom_smooth(aes(x=IBU, y=ABV), method="lm", na.rm = TRUE) +
   stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 100, label.y = 0.010, na.rm = TRUE) +
   annotate("text", x=117, y=0.017, label="Pearson's Correlation") +
-  labs(title = "Correlation of ABV vs. IBU", x="ABV", y="IBU")
+  labs(title = "Correlation of ABV vs. IBU", x="IBU", y="ABV")
 ```
 If we use the imputed dataset however, the additional data tends toward the mean and the correlation drops to 54%.  Even though it lost 13% correlation points, it is still a significant positive correlation.
 ```{r relationship between adjusted IBU and ABV}
@@ -304,7 +285,7 @@ adjData %>% select(c(IBU, ABV)) %>% ggplot() +
   geom_smooth(aes(x=IBU, y=ABV), method="lm", na.rm = TRUE) +
   stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 100, label.y = 0.010, na.rm = TRUE) +
   annotate("text", x=117, y=0.017, label="Pearson's Correlation") +
-  labs(title = "Correlation of ABV vs. IBU", x="ABV", y="IBU")
+  labs(title = "Correlation of ABV vs. IBU", x="IBU", y="ABV")
 ```
 
 
