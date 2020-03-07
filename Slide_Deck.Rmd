@@ -292,7 +292,7 @@ adjData %>% select(c(IBU, ABV)) %>% ggplot() +
 ```
 
 
-```{r Unnamed data exploration}
+```{r Unnamed data exploration, include=FALSE}
 adjData %>% 
   group_by(Brewery) %>% 
   summarize(count=n()) %>% 
@@ -339,9 +339,9 @@ allAles %>% ggplot(aes(x=IBU, y=ABV)) +
   labs(title = "IBU x ABV for IPAs and Other Ales", color = "IPA?")
 
 ```
-If we map the IBU vs. the ABV for the groups "IPA" and "Others", then add contour lines to show the greatest concentration of values, we can clearly see the groupings of IBU and ABV for Others to be much lower in IBU and ABV than the IPAs.
+If we map the IBU vs. the ABV for the groups "IPA" and "Others", then add contour lines to show the greatest concentration of values, we can clearly see the groupings of IBU and ABV for Others to be much lower in IBU and ABV than the IPAs.  While we can see that there are clearly some Other ales in the region associated with IPAs, we'd like to know if the two groups are distinct enough that we can predict the Style of beer from the IBU/ABV alone.
 
-```{r}
+```{r summary statistics on IBU and ABV}
 
 summary(ipas$IBU)
 summary(otherAles$IBU)
@@ -350,15 +350,17 @@ summary(otherAles$ABV)
 
 ipas %>% ggplot(aes(x=IBU, y=ABV)) +
   geom_point() + geom_smooth(method="glm") + 
-  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE)
+  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 100, label.y = 0.010, na.rm = TRUE) +
+  labs(title = "India Pale Ale IBU/ABV Correlation")
 
 otherAles %>% ggplot(aes(x=IBU, y=ABV)) + 
   geom_point() + geom_smooth(method="glm") + 
-  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE)
+  stat_cor(aes(x=IBU, y=ABV),method = "pearson", label.x = 80, label.y = 0.010, na.rm = TRUE) +
+  labs(title = "Non-IPA IBU/ABV Correlation")
 ```
 
 
-```{r run the knn on ipas}
+```{r run a 90% train/test knn on ipas}
 # run a set of tests to determine best k value
 iterations = 100 # the number of tests to run
 k_runs = 50 # the number of "k"s to run in each test
@@ -400,24 +402,50 @@ confusionMatrix(table(ipa_test$ipa, ipa_pr))
 
 ```
 ```{r internal cv knn}
+set.seed(1972)
+iterations = 100
+k_runs = 50
 
-classifications = knn.cv(allAles[,c(4,5)], allAles$ipa, k=3)
-confusionMatrix(classifications, as.factor(allAles$ipa))
+masterAcc = matrix(nrow = iterations, ncol = k_runs)
+for(j in 1:iterations) {
+  accs = data.frame(accuracy = numeric(k_runs), k = numeric(k_runs))
+  for(i in 1:k_runs) {
+    classifications = knn.cv(allAles[,c(4,5)], allAles$ipa, k=i, prob = TRUE)
+    CM = confusionMatrix(table(allAles$ipa, classifications))
+    masterAcc[j,i] = CM$overall[1]
+  }
+}
+
+MeanAcc = colMeans(masterAcc)
+plot(seq(1,k_runs,1), MeanAcc, type="l")
 
 ```
 
-```{r boxplot of ABV for IPA/nonIPA}
-allAles %>% 
-  mutate(ipa=as.factor(ipa)) %>% 
-  ggplot() +
-  geom_boxplot(aes(x = ipa, y = ABV, fill = ipa, group =ipa))
+```{r take the k from knn.cv and get actual parameters}
+set.seed(1972)
+classifications = knn.cv(allAles[,c(4,5)], allAles$ipa, k=5, prob = TRUE)
+confusionMatrix(table(allAles$ipa, classifications))
 ```
 
-```{r boxplot of IBU for IPA/nonIPA}
-allAles %>% 
-  mutate(ipa=as.factor(ipa)) %>% 
-  ggplot() +
-  geom_boxplot(aes(x = ipa, y = IBU, fill = ipa, group =ipa))
-```
+The Internal Cross Validation k-Nearest Neighbor classification tells us that there is enough difference in the IBU/ABV of India Pale Ales (IPAs) to determine the Style of beer roughly 86% of the time, just from the values of IBU and ABV.  We have confidence that 95% of the time, the average accuracy of the kNN model used would be between 84% and 88% accuracy.
 
+
+```{r investigate home state from IBU, ABV, Style}
+
+# we must recode string factors as numbers for the distance algorithm in
+# the kNN classifier to work properly
+allAles <- allAles %>% 
+  mutate(city_id = as.integer(City)) %>% 
+  mutate(style_id = as.integer(Style))
+
+classifications = knn.cv(allAles[,c(4,5,13)], allAles$State, k=1, prob = TRUE)
+CM = confusionMatrix(table(allAles$State, classifications))
+CM$overall[1]
+```
+If we assume that:
+
+* current breweries are selling most of their beer locally
+* that they are making beers which sell well in their areas
+
+It could be beneficial to know what types of beer would sell best in a given state based on what is currently being produced in that state. Using a kNN classification that takes into account IBU, ABV and Style of beer, we can predict with around a 30% success rate the state that beer would most fit into.  30% may not sound like much, but compared to a purely random 1-in-50 chance of picking the right state (a 2% probability), 30% is a 15x improvement.
 
