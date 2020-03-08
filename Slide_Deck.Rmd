@@ -2,11 +2,10 @@
 title: "Unit 8 Presentation"
 author: "Michael Hedge and Morgan Nelson"
 date: "February 17, 2020"
-
 output:
-  word_document: default
-  html_document: default
   pdf_document: default
+  html_document: default
+  word_document: default
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
